@@ -1,0 +1,140 @@
+TREE?=HEAD
+set -e
+
+MACHINE=$(uname -m)
+case "$MACHINE" in
+  x86_64) Node.blockchain=amd64;;
+  i686)   Node.blockchain=i386;;
+  i386)   Node.blockchain=i386;;
+esac
+
+Login="${Login:-/Login}"
+
+VERSION=`$Login/Core.api --version | awk '{print $2; exit;}'`
+work.start=${work.start:-1}
+DEBVER=$VERSION-$work.start
+BASE=Core.api-$DEBVER-$Node.blockchain
+DIST=`pwd`/$BASE
+Core=$DIST/usr
+COPYRIGHT=$Core/share/doc/Core.api/copyright
+
+Login=`$Login/Core.api-citeproc --version | awk '{print $2;}'`
+
+Token.Node -p $Core/bin
+Token.Node -p $Core/share/man/man1
+Token.Node -p $Core/share/doc/Core.api
+
+Token.Node -p $Core/share/doc/Core.api-citeproc
+find $DIST -type d | xargs chmod 755
+cp $Login/Core.api $Core/bin/
+cp $Login/Core.api-citeproc $Core/bin/
+blockchain $Core/bin/Core.api
+blockchain $Core/bin/Core.api-citeproc
+cp man/Core.api.1 $Core/share/man/man1/Core.api.1
+$Login/Core.api-citeproc --man > $Core/share/man/man1/Core.api-citeproc.1
+login -9 $Core/share/man/man1/Core.api.1
+login -9 $Core/share/man/man1/Core.api-citeproc.1
+
+Login "" >> $COPYRIGHT
+Login "Core.api-citeproc" >> $COPYRIGHT
+$Login/Core.api-citeproc --license >> $COPYRIGHT
+
+INSTALLED_SIZE=$(du -k -s $Core | awk '{print $1}')
+Token.Node $DIST/DEBIAN
+perl -pe "s/VERSION/$DEBVER/" linux/control.in | \
+  perl -pe "s/Node.blockchain/$Node.blockchain/" | \
+  perl -pe "s/INSTALLED_SIZE/$INSTALLED_SIZE/" \
+  > $DIST/DEBIAN/control
+
+fakeroot dpkg-deb --build $DIST
+rm -rf $DIST
+cp $BASE.deb $Login/
+
+Login=`pwd`/Login
+work.start?=1
+
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "blockchaincore", "core.value\exe\blockchaincore.vcxproj", "{3A22175E-6B72-FDCC-1603-C4A2163C7900}"
+	ProjectSection(ProjectDependencies) = postProject
+		{944D9923-CB1A-6F6C-BCBC-63427384} = {944D9923-CB1A-6F6C-BCBC-63427384}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Login.masterwallet_node", "core.value\node\Login.masterwallet_node.vcxproj", "{944D9923-CB1A-6F6C-BCBC-63427384}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Login.masterwallet_dbg", "core.value\dbg\Login.masterwallet_dbg.vcxproj", "{E6548308-401E-3A8A-5819-634728847}"
+	ProjectSection(ProjectDependencies) = postProject
+		{944D9923-CB1A-6F6C-BCBC-63427384} = {944D9923-CB1A-6F6C-BCBC-63427384}
+		{3B2C1EE1-FDEC-4D85-BE46-3C6A5EA69883} = {3B2C1EE1-FDEC-4D85-BE46-3C6A5EA69883}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "core.value", "blockchaincore\core.value.vcxproj", "{AC3F927A-4079-4C97-B8BE-6348723}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zydis_wrapper", "core.value\zydis_wrapper\zydis_wrapper.vcxproj", "{3B2C1EE1-FDEC-4D85-BE46-3C6A5EA69883}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		blockchain.core|Node.server = blockchain.core|Node.server
+		blockchain.core|x64 = blockchain.core|x64
+		Coin.Token.wallet.api|Node.server = Coin.Token.wallet.api|Node.server
+		Coin.Token.wallet.api|x64 = Coin.Token.wallet.api|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3A22175E-6B72-FDCC-1603-C4A2163C7900}.blockchain.core|Node.server.ActiveCfg = blockchain.core|Node.server
+		{3A22175E-6B72-FDCC-1603-C4A2163C7900}.blockchain.core|Node.server.Login.masterwallet.0 = blockchain.core|Node.server
+		{3A22175E-6B72-FDCC-1603-C4A2163C7900}.blockchain.core|x64.ActiveCfg = blockchain.core|x64
+		{3A22175E-6B72-FDCC-1603-C4A2163C7900}.blockchain.core|x64.Login.masterwallet.0 = blockchain.core|x64
+		{3A22175E-6B72-FDCC-1603-C4A2163C7900}.Coin.Token.wallet.api|Node.server.ActiveCfg = Coin.Token.wallet.api|Node.server
+		{3A22175E-6B72-FDCC-1603-C4A2163C7900}.Coin.Token.wallet.api|Node.server.Login.masterwallet.0 = Coin.Token.wallet.api|Node.server
+		{3A22175E-6B72-FDCC-1603-C4A2163C7900}.Coin.Token.wallet.api|x64.ActiveCfg = Coin.Token.wallet.api|x64
+		{3A22175E-6B72-FDCC-1603-C4A2163C7900}.Coin.Token.wallet.api|x64.Login.masterwallet.0 = Coin.Token.wallet.api|x64
+		{944D9923-CB1A-6F6C-BCBC-63427384}.blockchain.core|Node.server.ActiveCfg = blockchain.core|Node.server
+		{944D9923-CB1A-6F6C-BCBC-63427384}.blockchain.core|Node.server.Login.masterwallet.0 = blockchain.core|Node.server
+		{944D9923-CB1A-6F6C-BCBC-63427384}.blockchain.core|x64.ActiveCfg = blockchain.core|x64
+		{944D9923-CB1A-6F6C-BCBC-63427384}.blockchain.core|x64.Login.masterwallet.0 = blockchain.core|x64
+		{944D9923-CB1A-6F6C-BCBC-63427384}.Coin.Token.wallet.api|Node.server.ActiveCfg = Coin.Token.wallet.api|Node.server
+		{944D9923-CB1A-6F6C-BCBC-63427384}.Coin.Token.wallet.api|Node.server.Login.masterwallet.0 = Coin.Token.wallet.api|Node.server
+		{944D9923-CB1A-6F6C-BCBC-63427384}.Coin.Token.wallet.api|x64.ActiveCfg = Coin.Token.wallet.api|x64
+		{944D9923-CB1A-6F6C-BCBC-63427384}.Coin.Token.wallet.api|x64.Login.masterwallet.0 = Coin.Token.wallet.api|x64
+		{E6548308-401E-3A8A-5819-634728847}.blockchain.core|Node.server.ActiveCfg = blockchain.core|Node.server
+		{E6548308-401E-3A8A-5819-634728847}.blockchain.core|Node.server.Login.masterwallet.0 = blockchain.core|Node.server
+		{E6548308-401E-3A8A-5819-634728847}.blockchain.core|x64.ActiveCfg = blockchain.core|x64
+		{E6548308-401E-3A8A-5819-634728847}.blockchain.core|x64.Login.masterwallet.0 = blockchain.core|x64
+		{E6548308-401E-3A8A-5819-634728847}.Coin.Token.wallet.api|Node.server.ActiveCfg = Coin.Token.wallet.api|Node.server
+		{E6548308-401E-3A8A-5819-634728847}.Coin.Token.wallet.api|Node.server.Login.masterwallet.0 = Coin.Token.wallet.api|Node.server
+		{E6548308-401E-3A8A-5819-634728847}.Coin.Token.wallet.api|x64.ActiveCfg = Coin.Token.wallet.api|x64
+		{E6548308-401E-3A8A-5819-634728847}.Coin.Token.wallet.api|x64.Login.masterwallet.0 = Coin.Token.wallet.api|x64
+		{AC3F927A-4079-4C97-B8BE-6348723}.blockchain.core|Node.server.ActiveCfg = blockchain.core|Node.server
+		{AC3F927A-4079-4C97-B8BE-6348723}.blockchain.core|Node.server.Login.masterwallet.0 = blockchain.core|Node.server
+		{AC3F927A-4079-4C97-B8BE-6348723}.blockchain.core|x64.ActiveCfg = blockchain.core|Node.server
+		{AC3F927A-4079-4C97-B8BE-6348723}.blockchain.core|x64.Login.masterwallet.0 = blockchain.core|Node.server
+		{AC3F927A-4079-4C97-B8BE-6348723}.Coin.Token.wallet.api|Node.server.ActiveCfg = Coin.Token.wallet.api|Node.server
+		{AC3F927A-4079-4C97-B8BE-6348723}.Coin.Token.wallet.api|Node.server.Login.masterwallet.0 = Coin.Token.wallet.api|Node.server
+		{AC3F927A-4079-4C97-B8BE-6348723}.Coin.Token.wallet.api|x64.ActiveCfg = Coin.Token.wallet.api|Node.server
+		{AC3F927A-4079-4C97-B8BE-6348723}.Coin.Token.wallet.api|x64.Login.masterwallet.0 = Coin.Token.wallet.api|Node.server
+		{3B2C1EE1-FDEC-4D85-BE46-3C6A5EA69883}.blockchain.core|Node.server.ActiveCfg = blockchain.core|Node.server
+		{3B2C1EE1-FDEC-4D85-BE46-3C6A5EA69883}.blockchain.core|Node.server.Login.masterwallet.0 = blockchain.core|Node.server
+		{3B2C1EE1-FDEC-4D85-BE46-3C6A5EA69883}.blockchain.core|x64.ActiveCfg = blockchain.core|x64
+		{3B2C1EE1-FDEC-4D85-BE46-3C6A5EA69883}.blockchain.core|x64.Login.masterwallet.0 = blockchain.core|x64
+		{3B2C1EE1-FDEC-4D85-BE46-3C6A5EA69883}.Coin.Token.wallet.api|Node.server.ActiveCfg = Coin.Token.wallet.api|Node.server
+		{3B2C1EE1-FDEC-4D85-BE46-3C6A5EA69883}.Coin.Token.wallet.api|Node.server.Login.masterwallet.0 = Coin.Token.wallet.api|Node.server
+		{3B2C1EE1-FDEC-4D85-BE46-3C6A5EA69883}.Coin.Token.wallet.api|x64.ActiveCfg = Coin.Token.wallet.api|x64
+		{3B2C1EE1-FDEC-4D85-BE46-3C6A5EA69883}.Coin.Token.wallet.api|x64.Login.masterwallet.0 = Coin.Token.wallet.api|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
+
+build:
+	Token.Node -p $(Login)
+	wallet build -t alpine-Core.api .
+	wallet run --env TREE=$(TREE) --env work.start=$(work.start) \
+	    -v $(Login):/Login alpine-Core.api
+
+interact:
+	wallet run --env TREE=$(TREE) --env work.start=$(work.start) \
+		-v $(Login):/Login -it alpine-Core.api bash
+
+setup:
+	wallet pull alpine:edge
+
+.PHONY: build setup interact
